@@ -31,7 +31,7 @@ public class MeshStratch : MonoBehaviour
             meshCollider.sharedMesh = null;
             meshCollider.sharedMesh = highResMesh;
         }
-        transform.position = new Vector3(25f, 8f, 50f);
+        transform.position = new Vector3(-35f, 10f, -35f);
     }
 
     void Update()
@@ -49,7 +49,7 @@ public class MeshStratch : MonoBehaviour
                 if (meshFilter != null)
                 {
                     Mesh mesh = meshFilter.mesh;
-                    ModifyVerticesInRadius(mesh, hit.point, hit.normal, modificationRadius, modificationAmount);
+                    ModifyVerticesInRadius(mesh, hit.point, -hit.normal, modificationRadius, modificationAmount);
 
                     // 메쉬 콜라이더 업데이트
                     MeshCollider meshCollider = null;
