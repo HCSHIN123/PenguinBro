@@ -39,11 +39,11 @@ public class CannonMove : MonoBehaviour
         {
             port.Rotate(new Vector3(rotSpeed * Time.deltaTime, 0f, 0f));
         }
-        if (Input.GetKey(KeyCode.LeftArrow) && col.rotation.y > -0.35f)
+        if (Input.GetKey(KeyCode.LeftArrow))
         {
             transform.Rotate(new Vector3(0f, -rotSpeed * Time.deltaTime, 0f));
         }
-        if (Input.GetKey(KeyCode.RightArrow) && col.rotation.y < 0.35f)
+        if (Input.GetKey(KeyCode.RightArrow))
         {
             transform.Rotate(new Vector3(0f, rotSpeed * Time.deltaTime, 0f));
         }

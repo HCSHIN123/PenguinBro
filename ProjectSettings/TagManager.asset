@@ -7,11 +7,12 @@ TagManager:
   - Bullet
   - FxTemporaire
   - Breakable
+  - Ink
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Player
   - Water
   - UI
   - Bullet
