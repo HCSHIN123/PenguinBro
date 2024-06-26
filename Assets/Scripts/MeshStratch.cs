@@ -36,31 +36,31 @@ public class MeshStratch : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetMouseButtonDown(0))
-        {
-            Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
+        // if (Input.GetMouseButtonDown(0))
+        // {
+        //     Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+        //     RaycastHit hit;
 
-            if (Physics.Raycast(ray, out hit))
-            {
-                GameObject clickedObject = hit.collider.gameObject;
-                MeshFilter meshFilter = clickedObject.GetComponent<MeshFilter>();
+        //     if (Physics.Raycast(ray, out hit))
+        //     {
+        //         GameObject clickedObject = hit.collider.gameObject;
+        //         MeshFilter meshFilter = clickedObject.GetComponent<MeshFilter>();
 
-                if (meshFilter != null)
-                {
-                    Mesh mesh = meshFilter.mesh;
-                    ModifyVerticesInRadius(mesh, hit.point, -hit.normal, modificationRadius, modificationAmount);
+        //         if (meshFilter != null)
+        //         {
+        //             Mesh mesh = meshFilter.mesh;
+        //             ModifyVerticesInRadius(mesh, hit.point, Vector3.down, modificationRadius, modificationAmount);
 
-                    // 메쉬 콜라이더 업데이트
-                    MeshCollider meshCollider = null;
-                    if (clickedObject.TryGetComponent<MeshCollider>(out meshCollider))
-                    {
-                        meshCollider.sharedMesh = null;
-                        meshCollider.sharedMesh = mesh;
-                    }
-                }
-            }
-        }
+        //             // 메쉬 콜라이더 업데이트
+        //             MeshCollider meshCollider = null;
+        //             if (clickedObject.TryGetComponent<MeshCollider>(out meshCollider))
+        //             {
+        //                 meshCollider.sharedMesh = null;
+        //                 meshCollider.sharedMesh = mesh;
+        //             }
+        //         }
+        //     }
+        // }
     }
 
     private Mesh GeneratePlane(int resolution)
@@ -110,7 +110,7 @@ public class MeshStratch : MonoBehaviour
     void ModifyVerticesInRadius(Mesh mesh, Vector3 hitPoint, Vector3 hitNormal, float radius, float amount)
     {
         Vector3[] vertices = mesh.vertices;
-        Vector3 localHitPoint = transform.InverseTransformPoint(hitPoint); // 클릭 지점을 로컬 공간으로 변환
+        Vector3 localHitPoint = transform.InverseTransformPoint(hitPoint); 
 
         for (int i = 0; i < vertices.Length; i++)
         {
@@ -127,5 +127,19 @@ public class MeshStratch : MonoBehaviour
         mesh.vertices = vertices;
         mesh.RecalculateBounds();
         mesh.RecalculateNormals();
+        MeshCollider meshCollider = GetComponent<MeshCollider>();
+        meshCollider.sharedMesh = mesh;
+    }
+
+    private void OnCollisionEnter(Collision _collision)
+    {
+    
+        if(_collision.gameObject.CompareTag("Bullet"))
+        {
+            Vector3 point = _collision.transform.position;
+            MeshFilter meshFilter = GetComponent<MeshFilter>();
+
+            ModifyVerticesInRadius(meshFilter.mesh, point, Vector3.down, modificationRadius, modificationAmount);
+        }
     }
 }

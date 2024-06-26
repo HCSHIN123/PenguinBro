@@ -6,6 +6,10 @@ using UnityEngine.UIElements;
 
 public class Cannon : MonoBehaviour
 {
+
+
+    public delegate void CallbackMethod();
+    private CallbackMethod callback = null;
     public Bullet[] bullets;
     private Bullet bullet = null;
     public Transform start, peak, end;
@@ -24,6 +28,8 @@ public class Cannon : MonoBehaviour
     //최적화용 변수
     private Vector3 prevPortDir = Vector3.zero;
     private Vector3 prevPos = Vector3.zero; 
+
+    public bool isMyTurn = false;
     private void Start()
     {
         firePort = start.GetComponent<FirePort>();
@@ -34,6 +40,7 @@ public class Cannon : MonoBehaviour
             bullet.transform.SetParent(transform, false);
             bullet.gameObject.SetActive(false);
         }
+        AttachBullet(0);
     }
 
     private void Update()
@@ -48,19 +55,45 @@ public class Cannon : MonoBehaviour
         // 360도 이상 값이 나오지 않도록 제한
         if (launchAngle >= 360f)
             launchAngle %= 360f;
+            
         // 180도 미만 값으로 변환
         if (launchAngle > 180f)
             launchAngle = 360f - launchAngle;
+
         directionAngle = transform.eulerAngles.y;
         UpdateBulletPath();
        
-        if (Input.GetMouseButtonUp(0))
-        {
-            if(bullet?.gameObject.activeSelf == true)
-                bullet.Shooting_Physical(bulletPathList.ToArray());
-        }
+        // if (Input.GetMouseButtonUp(0))
+        // {
+        //     if(bullet?.gameObject.activeSelf == true)
+        //         bullet.Shooting_Physical(bulletPathList.ToArray());
+        // }
             //bullet.Shooting(start, peak, end);
     }
+    public void SetCallbackMethod(CallbackMethod _methodValue)
+    {
+        callback = _methodValue;
+    }
+
+    public void StartShooting()
+    {
+        isMyTurn = true;
+        
+        StartCoroutine(ShootBullet());
+        
+    }
+
+    private IEnumerator ShootBullet()
+    {
+        if(isMyTurn && bullet?.gameObject.activeSelf == true)
+        {
+            bullet.Shooting_Physical(bulletPathList.ToArray());            
+        }
+        yield return new WaitForSeconds(3.0f);
+        callback?.Invoke();
+        yield break;
+    }
+   
 
     private void AttachBullet(int _idx)
     {
