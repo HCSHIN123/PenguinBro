@@ -8,14 +8,19 @@ public class Bullet_Bomb : Bullet_RangeAttack
     [SerializeField]
     private float nuckBackForce = 10f;
     
-    override public void Init()
+    override public void ReadyToShoot()
     {
-        base.Init();
+        base.ReadyToShoot();
         isUsed = false;
     }
 
     protected override void Bomb()
     {
+        MeshRenderer[] mr = GetComponentsInChildren<MeshRenderer>();
+        foreach(MeshRenderer m in mr) 
+        {
+            m.enabled = false;
+        }
         Collider[] target = Physics.OverlapSphere(transform.position, bombRange, targetMask);
         if (target.Length >= 1)
             target[0].GetComponent<PlayerDamaged>().NuckBack(nuckBackForce, transform.position);

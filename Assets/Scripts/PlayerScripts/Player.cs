@@ -1,13 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Player : MonoBehaviour
 {
-    Rigidbody rb;
+    private bool myTurn = false;
+   
+
     private void Awake()
     {
-        rb = GetComponent<Rigidbody>();
+        
     }
     void Start()
     {
@@ -19,12 +22,13 @@ public class Player : MonoBehaviour
     {
         
     }
-
-    public void NuckBack(float _force, Vector3 _bombPos)
+    public void MyTurnEnd()
     {
-        Vector2 dir = new Vector2(transform.position.x, transform.position.z) - new Vector2(_bombPos.x, _bombPos.z);
-        dir.Normalize();
-        Vector3 nuckbackDir = new Vector3(dir.x, 0f, dir.y);
-        rb.AddForce(nuckbackDir * _force,ForceMode.Impulse);
+        myTurn = false;
+        
+    }
+    public void MyTurnStart()
+    {
+        myTurn = true;
     }
 }

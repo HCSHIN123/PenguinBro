@@ -16,13 +16,13 @@ public abstract class Bullet_RangeAttack : Bullet
     {
         yield return new WaitForSecondsRealtime(delayTime);
         particle.Play();
+        yield return new WaitForSecondsRealtime(0.02f);
         Bomb();
         while (particle.isPlaying)
         {
             yield return null;
         }
-
-        Init();
+        ReadyToShoot();
         transform.position = Vector3.zero;
     }
 }

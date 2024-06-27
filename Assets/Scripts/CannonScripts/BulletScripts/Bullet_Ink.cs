@@ -16,7 +16,8 @@ public class Bullet_Ink : Bullet_RangeAttack
         if (_collision.collider.CompareTag("Breakable") && !isUsed)
         {
             isUsed = true;
-            Bomb();
+            StartCoroutine(COR_Bomb());
+           // Bomb();
         }
     }
 

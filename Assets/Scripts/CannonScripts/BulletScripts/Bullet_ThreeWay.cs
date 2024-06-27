@@ -23,9 +23,9 @@ public class Bullet_ThreeWay : Bullet_DistributedAttack
             isSplit = true;
     }
 
-    public override void Init()
+    public override void ReadyToShoot()
     {
-        base.Init();
+        base.ReadyToShoot();
     }
     
     override public IEnumerator COR_Shoot_Physical(Vector3[] _path, float duration = 1.0f)

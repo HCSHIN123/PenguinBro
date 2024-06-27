@@ -11,7 +11,7 @@ public class Bullet : MonoBehaviour
 
     protected bool isUsed = false;
     
-    virtual public void Init()
+    virtual public void ReadyToShoot()
     {
     }
 
