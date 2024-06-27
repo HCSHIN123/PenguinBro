@@ -1,9 +1,8 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
-using static PlayerVR;
+using UnityEngine.UI;
+using UnityEngine.XR.Interaction.Toolkit;
 
 public class PlayerVR : MonoBehaviour
 {
@@ -15,38 +14,94 @@ public class PlayerVR : MonoBehaviour
     private vrXbuttondelegate VrXbuttondelegate = null;
     public vrXbuttondelegate SetVrXbuttondelegate { set { VrXbuttondelegate = value; } }
 
-
-    public InputActionProperty triggerAction;
-    public InputActionProperty LxButton;
+    [SerializeField] private Canvas statusCanva;
+    private Slider[] statusSlider;
+    public Sprite sp;
+    
+    public InputActionProperty[] inputAction; // RightTrigger = 0, LeftXbutton = 1, LeftJoyStick = 2;
+    public ContinuousMoveProviderBase move;
     private bool isPressed = false;
+    private bool coLoop = false;
 
-    private void Update()
+    private int hp = 10;
+    private float mp = 1000;
+
+    private void Start()
+    {
+        inputAction[1].action.performed += XbuttonPress;
+        move = GetComponent<ContinuousMoveProviderBase>();
+        statusSlider = statusCanva.GetComponentsInChildren<Slider>();
+
+        SetCouroutine(true);
+        SetHp(1);
+    }
+
+    private void XbuttonPress(InputAction.CallbackContext isPress)
+    {
+        VrXbuttondelegate(!isPressed);
+    }
+
+    private IEnumerator inputCoroutine()
     {
 
-        float triggerActionValue = triggerAction.action.ReadValue<float>();
-
-        if (triggerActionValue >= 0.9f)
+        while(coLoop)
         {
-            VrTriggerdelegate();
+
+            float triggerActionValue = inputAction[0].action.ReadValue<float>();
+
+            if (triggerActionValue >= 0.9f)
+            {
+                VrTriggerdelegate();
+            }
+
+            float joyStickValuey = inputAction[2].action.ReadValue<Vector2>().y;
+
+            if (joyStickValuey != 0)
+            {
+                mp -= Mathf.Abs(joyStickValuey);
+                Debug.Log("mp : " + mp);
+                float scale = (float)(mp * 0.0005);
+                statusSlider[0].value = scale;
+            }
+
+            if (mp <= 0)
+            {
+                move.enabled = false;
+            }
+
+            yield return null;
         }
 
-        bool LxButtonValue = LxButton.action.ReadValue<bool>();
+    }
 
-        if (LxButtonValue)
+    public void SetCouroutine(bool setBool)
+    {
+        coLoop = setBool;
+        if (coLoop)
         {
-            LxButtonValue = false;
-            isPressed = !isPressed;
-            VrXbuttondelegate(isPressed);
+            StartCoroutine("inputCoroutine");
+        }
+        else
+        {
+            StopCoroutine("inputCoroutine");
+        }
+    }
+
+    public void SetHp(int damage)
+    {
+        hp -= damage;
+        Debug.Log("HP : " + hp);
+        if (hp <= 0)
+        {
+            Debug.Log("Dead");
         }
 
-        if (Input.GetMouseButtonDown(0))
+        else
         {
-            isPressed = !isPressed;
-            VrXbuttondelegate(isPressed);
-        }
-        if (Input.GetMouseButtonDown(1))
-        {
-            VrTriggerdelegate();
+            float scaleCanva = statusSlider[1].value;
+            float length = scaleCanva - (scaleCanva * (float)(damage * 0.1));
+            scaleCanva = length;
+            statusSlider[1].value = scaleCanva;
         }
     }
 }

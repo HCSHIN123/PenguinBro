@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.UIElements;
 
 public class Cannon : MonoBehaviour
@@ -21,6 +22,11 @@ public class Cannon : MonoBehaviour
     private float gauge = 0f;
     private const float gravity = -9.81f;
     private float curRange = 0.2f;
+
+    public bool isMyTurn = false;
+
+
+
     private void Start()
     {
         firePort = GetComponentInChildren<FirePort>();
@@ -30,47 +36,115 @@ public class Cannon : MonoBehaviour
         {
             bullet.gameObject.SetActive(false);
         }
+        bullet = bullets[0];
+        bullet.gameObject.SetActive(true);
     }
 
-    private void Update()
+    public void startTurn()
     {
-        if (Input.GetKeyUp(KeyCode.Alpha1))
-            AttachBullet(0);
-        else if (Input.GetKeyUp(KeyCode.Alpha2))
-            AttachBullet(1);
-        else if (Input.GetKeyUp(KeyCode.Alpha3))
-            AttachBullet(2);
-        else if (Input.GetKeyUp(KeyCode.Alpha4))
-            AttachBullet(3);
+        Debug.Log($"Start My Turn : {transform.name}");
+        StartCoroutine(PlayerCtrl());
+    }
+    public void EndTurn()
+    {
+        StopCoroutine(PlayerCtrl());
+    }
 
-        launchAngle = firePort.transform.eulerAngles.x;
-        // 360도 이상 값이 나오지 않도록 제한
-        if (launchAngle >= 360f)
-            launchAngle %= 360f;
-        // 180도 미만 값으로 변환
-        if (launchAngle > 180f)
-            launchAngle = 360f - launchAngle;
-        directionAngle = transform.eulerAngles.y;
+    private IEnumerator PlayerCtrl()
+    {
+        while(isMyTurn)
+        {
+            if (Input.GetKeyUp(KeyCode.Alpha1))
+                AttachBullet(0);
+            else if (Input.GetKeyUp(KeyCode.Alpha2))
+                AttachBullet(1);
+            else if (Input.GetKeyUp(KeyCode.Alpha3))
+                AttachBullet(2);
+            else if (Input.GetKeyUp(KeyCode.Alpha4))
+                AttachBullet(3);
 
-        if (bullet == null)
-            return;
-        if(Input.GetMouseButton(0))
-        {
-            gauge += Time.deltaTime;
-            if (gauge > 1.0f)
-                gauge = 1.0f;
-            slider.value = gauge;
-            curRange = maxRange * slider.value;
-            UpdateBulletPath();
+            launchAngle = firePort.transform.eulerAngles.x;
+            // 360도 이상 값이 나오지 않도록 제한
+            if (launchAngle >= 360f)
+                launchAngle %= 360f;
+            // 180도 미만 값으로 변환
+            if (launchAngle > 180f)
+                launchAngle = 360f - launchAngle;
+            directionAngle = transform.eulerAngles.y;
+
+            if (bullet == null) break;
+            if(Input.GetMouseButton(0))
+            {
+                // Debug.Log("dd");
+                gauge += Time.deltaTime;
+                if (gauge > 1.0f)
+                    gauge = 1.0f;
+                // slider.value = gauge;
+                // curRange = maxRange * slider.value;
+                curRange = gauge*maxRange;
+                UpdateBulletPath();
+            }
+            else if (Input.GetMouseButtonUp(0))
+            {
+                UpdateBulletPath();
+                gauge = 0f;
+                // slider.value = gauge;
+                if (bullet?.gameObject.activeSelf == true)
+                    bullet.Shooting_Physical(bulletPathList.ToArray());
+            }
+
+            yield return null;
+            
         }
-        else if (Input.GetMouseButtonUp(0))
-        {
-            UpdateBulletPath();
-            gauge = 0f;
-            slider.value = gauge;
-            if (bullet?.gameObject.activeSelf == true)
-                bullet.Shooting_Physical(bulletPathList.ToArray());
-        }
+        yield break;
+    }
+
+    // private void Update()
+    // {
+    //     if (Input.GetKeyUp(KeyCode.Alpha1))
+    //         AttachBullet(0);
+    //     else if (Input.GetKeyUp(KeyCode.Alpha2))
+    //         AttachBullet(1);
+    //     else if (Input.GetKeyUp(KeyCode.Alpha3))
+    //         AttachBullet(2);
+    //     else if (Input.GetKeyUp(KeyCode.Alpha4))
+    //         AttachBullet(3);
+
+    //     launchAngle = firePort.transform.eulerAngles.x;
+    //     // 360도 이상 값이 나오지 않도록 제한
+    //     if (launchAngle >= 360f)
+    //         launchAngle %= 360f;
+    //     // 180도 미만 값으로 변환
+    //     if (launchAngle > 180f)
+    //         launchAngle = 360f - launchAngle;
+    //     directionAngle = transform.eulerAngles.y;
+
+    //     if (bullet == null)
+    //         return;
+    //     if(Input.GetMouseButton(0))
+    //     {
+    //         // Debug.Log("dd");
+    //         gauge += Time.deltaTime;
+    //         if (gauge > 1.0f)
+    //             gauge = 1.0f;
+    //         slider.value = gauge;
+    //         curRange = maxRange * slider.value;
+    //         curRange = gauge*maxRange;
+    //         UpdateBulletPath();
+    //     }
+    //     else if (Input.GetMouseButtonUp(0))
+    //     {
+    //         UpdateBulletPath();
+    //         gauge = 0f;
+    //         slider.value = gauge;
+    //         if (bullet?.gameObject.activeSelf == true)
+    //             bullet.Shooting_Physical(bulletPathList.ToArray());
+    //     }
+    // }
+
+    public void SetBullet(Bullet.bulletType _type)
+    {
+        AttachBullet((int)_type);
     }
 
     private void AttachBullet(int _idx)
