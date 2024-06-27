@@ -2,98 +2,150 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.UIElements;
 
 public class Cannon : MonoBehaviour
 {
-
-
-    public delegate void CallbackMethod();
-    private CallbackMethod callback = null;
     public Bullet[] bullets;
+    public UnityEngine.UI.Slider slider = null;
+    public float bulletVelocity = 120f; //발사 속도
+    public float maxRange = 250f; // 최대 발사범위
+   
+    private float launchAngle = 45f; // 발사 각도 (y축 기준)
+    private float initialVelocity = 10f; // 초기 속도
+    private float directionAngle = 0f; // 발사 방향 (y축 평면에서의 각도)
     private Bullet bullet = null;
-    public Transform start, peak, end;
-
     private FirePort firePort;
     private LineRenderer lr;
-    List<Vector3> bulletPathList = new List<Vector3>();
-
+    private List<Vector3> bulletPathList = new List<Vector3>();
+    private float gauge = 0f;
     private const float gravity = -9.81f;
-    public float initialVelocity = 10f; // 초기 속도
-    public float launchAngle = 45f; // 발사 각도 (y축 기준)
-    public float directionAngle = 0f; // 발사 방향 (y축 평면에서의 각도)
-    public float desiredDistance = 20f; // 원하는 비행 거리
-    public float bulletVelocity = 120f;
-
-    //최적화용 변수
-    private Vector3 prevPortDir = Vector3.zero;
-    private Vector3 prevPos = Vector3.zero; 
+    private float curRange = 0.2f;
 
     public bool isMyTurn = false;
+
+
+
     private void Start()
     {
-        firePort = start.GetComponent<FirePort>();
+        firePort = GetComponentInChildren<FirePort>();
         lr = GetComponent<LineRenderer>();
 
         foreach(Bullet bullet in bullets)
         {
-            bullet.transform.SetParent(transform, false);
             bullet.gameObject.SetActive(false);
         }
-        AttachBullet(0);
+        bullet = bullets[0];
+        bullet.gameObject.SetActive(true);
     }
 
-    private void Update()
+    public void startTurn()
     {
-        if (Input.GetKeyUp(KeyCode.Alpha1))
-            AttachBullet(0);
-        else if (Input.GetKeyUp(KeyCode.Alpha2))
-            AttachBullet(1);
-
-
-        launchAngle = firePort.transform.eulerAngles.x;
-        // 360도 이상 값이 나오지 않도록 제한
-        if (launchAngle >= 360f)
-            launchAngle %= 360f;
-            
-        // 180도 미만 값으로 변환
-        if (launchAngle > 180f)
-            launchAngle = 360f - launchAngle;
-
-        directionAngle = transform.eulerAngles.y;
-        UpdateBulletPath();
-       
-        // if (Input.GetMouseButtonUp(0))
-        // {
-        //     if(bullet?.gameObject.activeSelf == true)
-        //         bullet.Shooting_Physical(bulletPathList.ToArray());
-        // }
-            //bullet.Shooting(start, peak, end);
+        Debug.Log($"Start My Turn : {transform.name}");
+        StartCoroutine(PlayerCtrl());
     }
-    public void SetCallbackMethod(CallbackMethod _methodValue)
+    public void EndTurn()
     {
-        callback = _methodValue;
+        StopCoroutine(PlayerCtrl());
     }
 
-    public void StartShooting()
+    private IEnumerator PlayerCtrl()
     {
-        isMyTurn = true;
-        
-        StartCoroutine(ShootBullet());
-        
-    }
-
-    private IEnumerator ShootBullet()
-    {
-        if(isMyTurn && bullet?.gameObject.activeSelf == true)
+        while(isMyTurn)
         {
-            bullet.Shooting_Physical(bulletPathList.ToArray());            
+            if (Input.GetKeyUp(KeyCode.Alpha1))
+                AttachBullet(0);
+            else if (Input.GetKeyUp(KeyCode.Alpha2))
+                AttachBullet(1);
+            else if (Input.GetKeyUp(KeyCode.Alpha3))
+                AttachBullet(2);
+            else if (Input.GetKeyUp(KeyCode.Alpha4))
+                AttachBullet(3);
+
+            launchAngle = firePort.transform.eulerAngles.x;
+            // 360도 이상 값이 나오지 않도록 제한
+            if (launchAngle >= 360f)
+                launchAngle %= 360f;
+            // 180도 미만 값으로 변환
+            if (launchAngle > 180f)
+                launchAngle = 360f - launchAngle;
+            directionAngle = transform.eulerAngles.y;
+
+            if (bullet == null) break;
+            if(Input.GetMouseButton(0))
+            {
+                // Debug.Log("dd");
+                gauge += Time.deltaTime;
+                if (gauge > 1.0f)
+                    gauge = 1.0f;
+                // slider.value = gauge;
+                // curRange = maxRange * slider.value;
+                curRange = gauge*maxRange;
+                UpdateBulletPath();
+            }
+            else if (Input.GetMouseButtonUp(0))
+            {
+                UpdateBulletPath();
+                gauge = 0f;
+                // slider.value = gauge;
+                if (bullet?.gameObject.activeSelf == true)
+                    bullet.Shooting_Physical(bulletPathList.ToArray());
+            }
+
+            yield return null;
+            
         }
-        yield return new WaitForSeconds(3.0f);
-        callback?.Invoke();
         yield break;
     }
-   
+
+    // private void Update()
+    // {
+    //     if (Input.GetKeyUp(KeyCode.Alpha1))
+    //         AttachBullet(0);
+    //     else if (Input.GetKeyUp(KeyCode.Alpha2))
+    //         AttachBullet(1);
+    //     else if (Input.GetKeyUp(KeyCode.Alpha3))
+    //         AttachBullet(2);
+    //     else if (Input.GetKeyUp(KeyCode.Alpha4))
+    //         AttachBullet(3);
+
+    //     launchAngle = firePort.transform.eulerAngles.x;
+    //     // 360도 이상 값이 나오지 않도록 제한
+    //     if (launchAngle >= 360f)
+    //         launchAngle %= 360f;
+    //     // 180도 미만 값으로 변환
+    //     if (launchAngle > 180f)
+    //         launchAngle = 360f - launchAngle;
+    //     directionAngle = transform.eulerAngles.y;
+
+    //     if (bullet == null)
+    //         return;
+    //     if(Input.GetMouseButton(0))
+    //     {
+    //         // Debug.Log("dd");
+    //         gauge += Time.deltaTime;
+    //         if (gauge > 1.0f)
+    //             gauge = 1.0f;
+    //         slider.value = gauge;
+    //         curRange = maxRange * slider.value;
+    //         curRange = gauge*maxRange;
+    //         UpdateBulletPath();
+    //     }
+    //     else if (Input.GetMouseButtonUp(0))
+    //     {
+    //         UpdateBulletPath();
+    //         gauge = 0f;
+    //         slider.value = gauge;
+    //         if (bullet?.gameObject.activeSelf == true)
+    //             bullet.Shooting_Physical(bulletPathList.ToArray());
+    //     }
+    // }
+
+    public void SetBullet(Bullet.bulletType _type)
+    {
+        AttachBullet((int)_type);
+    }
 
     private void AttachBullet(int _idx)
     {
@@ -104,34 +156,12 @@ public class Cannon : MonoBehaviour
 
     private void UpdateBulletPath()
     {
-        // Bezier Curve 방식
-        //peak.position = start.position + curShootingeDir * bullet.Range;
-
-        //float dis = Vector3.Distance(new Vector3(peak.position.x, 0f, peak.position.z), new Vector3(start.position.x, 0f, start.position.z));
-        //Vector3 dir = new Vector3(peak.position.x, 0f, peak.position.z) - new Vector3(start.position.x, 0f, start.position.z);
-        //dir.Normalize();
-        //end.position = start.position + dir * dis * 2f;
-        //bulletPathList.Clear();
-
-        //if (start != null && peak != null && end != null)
-        //{
-        //    for (int i = 0; i < lineDetail; i++)
-        //    {
-        //        float t = (i / lineDetail);
-        //        Vector3 p4 = Vector3.Lerp(start.position, peak.position, t);
-        //        Vector3 p5 = Vector3.Lerp(peak.position, end.position, t);
-        //        bulletPathList.Add(Vector3.Lerp(p4, p5, t));
-        //    }
-        //}
-        //lr.SetPositions(bulletPathList.ToArray());
-
-        
         bulletPathList.Clear();
         AdjustInitialVelocityForDistance();
         float angleUpDown = launchAngle * Mathf.Deg2Rad; // 상하각도
         float angleLeftRight = directionAngle * Mathf.Deg2Rad; // 좌우각도
 
-        Vector3 initialPosition = start.position;
+        Vector3 initialPosition = firePort.transform.position;
 
         // 좌우방향 벡터 계산 (y축 중심) x = sin(theta), z = cos(theta)
         Vector3 direction = new Vector3(Mathf.Sin(angleLeftRight), 0, Mathf.Cos(angleLeftRight));
@@ -148,7 +178,7 @@ public class Cannon : MonoBehaviour
 
         for (int i = 0; ; i++)
         {
-            float t = i / desiredDistance;
+            float t = i / maxRange;
             float time = bulletVelocity * t * 2 * Mathf.Sin(angleUpDown) / -gravity;
             Vector3 position = CalculatePositionAtTime(initialPosition, initialVelocityVector, time);
             bulletPathList.Add(position);
@@ -156,15 +186,14 @@ public class Cannon : MonoBehaviour
                 break;
         }
 
-        lr.positionCount = bulletPathList.Count;
+        lr.positionCount = bulletPathList.Count / 3;
         lr.SetPositions(bulletPathList.ToArray());
     }
     private void AdjustInitialVelocityForDistance()
     {
         float radianLaunchAngle = launchAngle * Mathf.Deg2Rad;
-        float horizontalDistance = desiredDistance * Mathf.Cos(radianLaunchAngle);
-        float verticalDistance = desiredDistance * Mathf.Sin(radianLaunchAngle);
-
+        float horizontalDistance = curRange * Mathf.Cos(radianLaunchAngle);
+        float verticalDistance = curRange * Mathf.Sin(radianLaunchAngle);
         float timeToReachDistance = Mathf.Sqrt(2 * verticalDistance / -gravity);
         initialVelocity = horizontalDistance / timeToReachDistance;
     }
@@ -176,6 +205,5 @@ public class Cannon : MonoBehaviour
         float z = initialPosition.z + initialVelocity.z * time;
         return new Vector3(x, y, z);
     }
+    
 }
-   
-

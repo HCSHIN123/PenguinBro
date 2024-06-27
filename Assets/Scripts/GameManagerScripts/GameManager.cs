@@ -1,61 +1,68 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.XR.CoreUtils;
+using Photon.Pun;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    [SerializeField] private UIManager uiManager;
-    [SerializeField] private PlayerVR playerVR;        
-    [SerializeField] private float timeLimit = 0f;
-    [SerializeField] private float timeFlowSpeed = 1f;
-    [SerializeField] private GameObject[] cannons = null;
-    // [SerializeField] private List<Transform> tragetObj = null;
- 
+    // [SerializeField] private UIManager uiManager;
+    [SerializeField] private PlayerVR playerVR;
+    [SerializeField] private MeshStratch EventObj = null;
+    public Transform[] testSpawnPoints = null;
+    public GameObject[] testPlayer = null;
+    public int gameTurn = 0;
+    public bool isGameStart = false;
+
+
 
     private void Awake()
+    {   
+        InitializeGame();
+        // testPlayer = Resources.Load("TestCannon") as GameObject;
+    }
+    private void InitializeGame()
     {
-        // playerVR.SetVrTriggerdelegate = uiManager.IsTrigger;
-        // playerVR.SetVrXbuttondelegate = uiManager.IsXButton;
-        uiManager.SetCallbackMethod(StartGame);
-        foreach(GameObject cannon in cannons)
+        gameTurn = 0;
+
+        for(int i = 0; i < testPlayer.GetLength(0) ; ++i)
         {
-            cannon.GetComponentInChildren<Cannon>().SetCallbackMethod(StartTurn);
+            testPlayer[i].transform.position = testSpawnPoints[i].position;
+            testPlayer[i].transform.rotation = testSpawnPoints[i].rotation;
         }
-        cannons[1].GetComponentInChildren<Cannon>().isMyTurn = true;
+        testPlayer[1].GetComponent<Cannon>().isMyTurn = true;
+
     }
 
+    /// <summary>
+    /// Todo List
+    /// 1. Initialize WorldMap
+    /// 2. Instantiate Player Character 
+    /// 3. Player Position Initialize
+    /// </summary>
+    private void StartGame()
+    {   
+        ++gameTurn;
+        foreach(GameObject g in testPlayer)
+        {
+            g.GetComponent<Cannon>().isMyTurn = !g.GetComponent<Cannon>().isMyTurn;
+
+            if(g.GetComponent<Cannon>().isMyTurn) g.GetComponent<Cannon>().startTurn();
+            else g.GetComponent<Cannon>().EndTurn();
+        }
+    }
 
     private void Update()
     {
-        if(Input.GetMouseButtonDown(0))
-        {           
-            StartTurn();    
-            
-        }
-    }
-    private void StartGame()
-    {
-        foreach(GameObject g in cannons)
+        if(Input.GetKeyDown(KeyCode.A))
         {
-            g.GetComponentInChildren<Cannon>().isMyTurn = !g.GetComponentInChildren<Cannon>().isMyTurn;
-            
-
-            if(g.GetComponentInChildren<Cannon>().isMyTurn) 
-                g.GetComponentInChildren<Cannon>().StartShooting();
+            Debug.Log("Turn Start");
+            StartGame();
+            isGameStart = true;
         }
     }
 
-    private void StartTurn()
-    {
-       uiManager.StartTurn(timeFlowSpeed);
-    }
-    
 
 
-
-    
-    
 
 
 }

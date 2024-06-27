@@ -4,12 +4,14 @@ using System;
 [RequireComponent(typeof(MeshFilter), typeof(MeshCollider))]
 public class MeshStratch : MonoBehaviour
 {
-    public Camera mainCamera;
-    public float modificationRadius = 0.5f;
-    public float modificationAmount = 0.1f;
-    public int highResolution = 20; // 높은 해상도
-  
-    public float size = 10f; // Plane의 크기
+    [SerializeField] private float modificationRadius = 0.5f;
+    [SerializeField] private float modificationAmount = 0.1f;
+    [SerializeField] private float meshWidth = 10f;
+    [SerializeField] private float meshHeight = 10f;
+    // [SerializeField] private float size = 10f; 
+
+    [SerializeField] private int highResolution = 20; 
+    [SerializeField] private Vector3 planePos = Vector3.zero;
 
     private Mesh highResMesh = null;
 
@@ -17,53 +19,54 @@ public class MeshStratch : MonoBehaviour
     void Start()
     {
         // 고해상도 및 저해상도 메쉬 생성
-        highResMesh = GeneratePlane(highResolution);
-        mainCamera = Camera.main;
-       
+        highResMesh = GeneratePlane(highResolution, meshWidth, meshHeight);
+      
 
         // 메쉬 콜라이더 설정
         MeshFilter meshFilter = GetComponent<MeshFilter>();
-        meshFilter.mesh = highResMesh;       
-        // mainCamera.transform.position = Vector3.one *5f;
+        meshFilter.mesh = highResMesh;              
        
-        if (TryGetComponent<MeshCollider>(out MeshCollider meshCollider))
-        {
-            meshCollider.sharedMesh = null;
-            meshCollider.sharedMesh = highResMesh;
-        }
-        transform.position = new Vector3(-35f, 10f, -35f);
+        MeshCollider meshCollider = GetComponent<MeshCollider>();
+        meshCollider.sharedMesh = null;
+        meshCollider.sharedMesh = highResMesh;
+        
+        transform.position = planePos;
+
+      
+        
     }
 
-    void Update()
-    {
-        // if (Input.GetMouseButtonDown(0))
-        // {
-        //     Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
-        //     RaycastHit hit;
+    // void Update()
+    // {
+    //     if (Input.GetMouseButtonDown(0))
+    //     {
+    //         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+    //         RaycastHit hit;
 
-        //     if (Physics.Raycast(ray, out hit))
-        //     {
-        //         GameObject clickedObject = hit.collider.gameObject;
-        //         MeshFilter meshFilter = clickedObject.GetComponent<MeshFilter>();
+    //         if (Physics.Raycast(ray, out hit))
+    //         {
+    //             GameObject clickedObject = hit.collider.gameObject;
+    //             MeshFilter meshFilter = clickedObject.GetComponent<MeshFilter>();
 
-        //         if (meshFilter != null)
-        //         {
-        //             Mesh mesh = meshFilter.mesh;
-        //             ModifyVerticesInRadius(mesh, hit.point, Vector3.down, modificationRadius, modificationAmount);
+    //             if (meshFilter != null)
+    //             {
+    //                 Mesh mesh = meshFilter.mesh;
+    //                 Debug.Log(hit.point);
+    //                 ModifyVerticesInRadius(mesh, hit.point, Vector3.down, modificationRadius, modificationAmount);
 
-        //             // 메쉬 콜라이더 업데이트
-        //             MeshCollider meshCollider = null;
-        //             if (clickedObject.TryGetComponent<MeshCollider>(out meshCollider))
-        //             {
-        //                 meshCollider.sharedMesh = null;
-        //                 meshCollider.sharedMesh = mesh;
-        //             }
-        //         }
-        //     }
-        // }
-    }
+    //                 // 메쉬 콜라이더 업데이트
+    //                 MeshCollider meshCollider = null;
+    //                 if (clickedObject.TryGetComponent<MeshCollider>(out meshCollider))
+    //                 {
+    //                     meshCollider.sharedMesh = null;
+    //                     meshCollider.sharedMesh = mesh;
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 
-    private Mesh GeneratePlane(int resolution)
+    private Mesh GeneratePlane(int resolution, float _width, float _height)
     {
         Mesh mesh = new Mesh();
 
@@ -72,13 +75,14 @@ public class MeshStratch : MonoBehaviour
         Vector2[] uv = new Vector2[vertexCount];
         int[] triangles = new int[resolution * resolution * 6];
 
-        float stepSize = size / resolution;
+        float stepSizeX = _width / resolution;
+        float stepSizeY = _height / resolution;
 
         for (int i = 0, z = 0; z <= resolution; z++)
         {
             for (int x = 0; x <= resolution; x++, i++)
             {
-                vertices[i] = new Vector3(x * stepSize, 0, z * stepSize);
+                vertices[i] = new Vector3(x * stepSizeX, 0, z * stepSizeY);
                 uv[i] = new Vector2((float)x / resolution, (float)z / resolution);
             }
         }
@@ -97,8 +101,8 @@ public class MeshStratch : MonoBehaviour
         }
 
         mesh.vertices = vertices;
-        mesh.uv = uv;
         mesh.triangles = triangles;
+        mesh.uv = uv;
 
         mesh.RecalculateNormals();
        // mesh.CombineMeshes();
@@ -107,7 +111,7 @@ public class MeshStratch : MonoBehaviour
     }
 
 
-    void ModifyVerticesInRadius(Mesh mesh, Vector3 hitPoint, Vector3 hitNormal, float radius, float amount)
+    private void ModifyVerticesInRadius(Mesh mesh, Vector3 hitPoint, Vector3 hitNormal, float radius, float amount)
     {
         Vector3[] vertices = mesh.vertices;
         Vector3 localHitPoint = transform.InverseTransformPoint(hitPoint); 
@@ -115,6 +119,7 @@ public class MeshStratch : MonoBehaviour
         for (int i = 0; i < vertices.Length; i++)
         {
             float distanceSqr = (vertices[i] - localHitPoint).sqrMagnitude;
+            
 
             if (distanceSqr < radius * radius)
             {
@@ -127,6 +132,7 @@ public class MeshStratch : MonoBehaviour
         mesh.vertices = vertices;
         mesh.RecalculateBounds();
         mesh.RecalculateNormals();
+
         MeshCollider meshCollider = GetComponent<MeshCollider>();
         meshCollider.sharedMesh = mesh;
     }
@@ -135,11 +141,19 @@ public class MeshStratch : MonoBehaviour
     {
     
         if(_collision.gameObject.CompareTag("Bullet"))
-        {
-            Vector3 point = _collision.transform.position;
+        {   
+            Vector3 curpoint = Vector3.one;
+            float curDis = float.MaxValue;
+            foreach(ContactPoint points in _collision.contacts)
+            {
+                if(Vector3.Distance(_collision.transform.position, points.point) < curDis)
+                {
+                    curpoint = points.point;
+                    curDis = Vector3.Distance(_collision.transform.position, points.point);
+                }
+            }
             MeshFilter meshFilter = GetComponent<MeshFilter>();
-
-            ModifyVerticesInRadius(meshFilter.mesh, point, Vector3.down, modificationRadius, modificationAmount);
+            ModifyVerticesInRadius(meshFilter.mesh, curpoint, Vector3.down, modificationRadius, modificationAmount);
         }
     }
 }

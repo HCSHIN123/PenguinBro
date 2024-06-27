@@ -3,56 +3,34 @@ using System.Collections.Generic;
 using UnityEngine;
 using static UnityEngine.ParticleSystem;
 
-public class Bullet_Bomb : Bullet
+public class Bullet_Bomb : Bullet_RangeAttack
 {
     [SerializeField]
-    private LayerMask targetMask;
-    [SerializeField]
-    float nuckBackForce = 10f;
-    [SerializeField]
-    float delayTime = 1.5f;
-    [SerializeField]
-    float bombRange = 2.0f;
-    [SerializeField]
-    private ParticleSystem particle;
-
-    private bool isBomb = false;
-    override public void Init()
+    private float nuckBackForce = 10f;
+    
+    override public void ReadyToShoot()
     {
-        base.Init();
-        isBomb = false;
-        this.gameObject.GetComponent<MeshRenderer>().enabled = true;
-        this.gameObject.GetComponent<Rigidbody>().useGravity = true;
+        base.ReadyToShoot();
+        isUsed = false;
     }
-    private IEnumerator COR_Bomb()
+
+    protected override void Bomb()
     {
-        yield return new WaitForSecondsRealtime(delayTime);
-        particle.Play();
-        Bomb();
-        while(particle.isPlaying)
+        MeshRenderer[] mr = GetComponentsInChildren<MeshRenderer>();
+        foreach(MeshRenderer m in mr) 
         {
-            yield return null;
+            m.enabled = false;
         }
-
-        Init();
-        transform.position = Vector3.zero;
-    }
-
-    private void Bomb()
-    {
-        this.gameObject.GetComponent<MeshRenderer>().enabled = false;
-        this.gameObject.GetComponent<Rigidbody>().useGravity = false;
-
         Collider[] target = Physics.OverlapSphere(transform.position, bombRange, targetMask);
         if (target.Length >= 1)
-            target[0].GetComponent<Player>().NuckBack(nuckBackForce, transform.position);
+            target[0].GetComponent<PlayerDamaged>().NuckBack(nuckBackForce, transform.position);
     }
 
     private void OnCollisionEnter(Collision _collision)
     {
-        if (_collision.collider.CompareTag("Breakable") && !isBomb)
+        if (_collision.collider.CompareTag("Breakable") && !isUsed)
         {
-            isBomb = true;
+            isUsed = true;
             StartCoroutine(COR_Bomb());
         }
     }

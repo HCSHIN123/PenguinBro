@@ -26,6 +26,7 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
+  - _DISPLACEMENT
   - _REFRACTION
   - _REFRACTION_QUALITY_NORMAL
   - _SURFACE_TYPE_TRANSPARENT
@@ -36,7 +37,7 @@ Material:
   - _QUALITY_HIGH_QUALITY
   - _QUALITY_MEDIUM_RENDERING
   m_LightmapFlags: 1
-  m_EnableInstancingVariants: 1
+  m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap:
@@ -92,7 +93,7 @@ Material:
     - _BlendModePreserveSpecular: 0
     - _CastShadows: 1
     - _Cull: 2
-    - _DISPLACEMENT: 0
+    - _DISPLACEMENT: 1
     - _Depth: 0.3
     - _DstBlend: 10
     - _HeighFrequency: 10

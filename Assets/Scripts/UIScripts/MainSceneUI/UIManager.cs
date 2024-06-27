@@ -51,8 +51,8 @@ public class UIManager : MonoBehaviour
         {            
             originalSize -= flowTime * Time.deltaTime;
 
-            playerStatus[2].localScale = new Vector3(originalSize, 1f, 1f);
-            playerStatus[2].GetComponent<Image>().color = Color.Lerp(Color.red, Color.green, originalSize);
+            playerStatus[0].localScale = new Vector3(originalSize, 1f, 1f);
+            playerStatus[0].GetComponent<Image>().color = Color.Lerp(Color.red, Color.green, originalSize);
             
             yield return new WaitForEndOfFrame();
 
@@ -64,8 +64,8 @@ public class UIManager : MonoBehaviour
             
         }
 
-        playerStatus[2].GetComponent<Image>().color = Color.green;
-        playerStatus[2].localScale = Vector3.one;
+        playerStatus[0].GetComponent<Image>().color = Color.green;
+        playerStatus[0].localScale = Vector3.one;
 
         yield break;
     }
