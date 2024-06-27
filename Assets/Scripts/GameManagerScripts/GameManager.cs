@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Photon.Pun;
 using UnityEngine;
 
-public class GameManager : MonoBehaviour
+public class GameManager : MonoBehaviourPunCallbacks
 {
     // [SerializeField] private UIManager uiManager;
     [SerializeField] private PlayerVR playerVR;
@@ -39,6 +39,9 @@ public class GameManager : MonoBehaviour
     /// 2. Instantiate Player Character 
     /// 3. Player Position Initialize
     /// </summary>
+    /// 
+
+    [PunRPC]
     private void StartGame()
     {   
         ++gameTurn;
@@ -49,6 +52,8 @@ public class GameManager : MonoBehaviour
             if(g.GetComponent<Cannon>().isMyTurn) g.GetComponent<Cannon>().startTurn();
             else g.GetComponent<Cannon>().EndTurn();
         }
+
+        Debug.LogError(gameTurn);
     }
 
     private void Update()
@@ -56,8 +61,8 @@ public class GameManager : MonoBehaviour
         if(Input.GetKeyDown(KeyCode.A))
         {
             Debug.Log("Turn Start");
-            StartGame();
-            isGameStart = true;
+            // StartGame();
+            photonView.RPC("StartGame", RpcTarget.All);
         }
     }
 
