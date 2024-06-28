@@ -145,7 +145,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   endTime: 1
-  bulletTransforms: []
+  bulletTransforms:
+  - {fileID: 5188575211721847600}
+  - {fileID: 4860503691291790522}
   splitSpeed: 1500
 --- !u!135 &7897038150770028510
 SphereCollider:
