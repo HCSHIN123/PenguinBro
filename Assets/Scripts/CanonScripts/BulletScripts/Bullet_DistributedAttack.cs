@@ -10,11 +10,12 @@ public abstract class Bullet_DistributedAttack : Bullet
 
     public override void ReadyToShoot()
     {
-        base.ReadyToShoot();
-        isSplit = false;
-        foreach(Transform t in bulletTransforms) 
+        foreach (Transform t in bulletTransforms)
         {
             t.GetComponent<Rigidbody>().useGravity = false;
         }
+        base.ReadyToShoot();
+        isSplit = false;
+       
     }
 }
