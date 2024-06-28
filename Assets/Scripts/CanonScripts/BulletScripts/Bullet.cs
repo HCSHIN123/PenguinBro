@@ -17,15 +17,13 @@ public class Bullet : MonoBehaviour
     protected WaitForFixedUpdate wait = new WaitForFixedUpdate();
     protected bool isHited = false;
     protected string breakableTag = "Breakable";
-    [SerializeField]
     protected Rigidbody rb;
 
-    private void Start()
+    private void Awake()
     {
         startPos = transform.localPosition;
         startRot = transform.localRotation;
         rb = GetComponent<Rigidbody>();
-
     }
 
     virtual public void ReadyToShoot()
